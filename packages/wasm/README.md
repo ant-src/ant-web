@@ -43,7 +43,8 @@ which Vite, webpack and esbuild copy along. Pass `wasm` (a URL, a `Response`, by
   `{ path, line, column, message }`, 1-based, with columns in UTF-16 code units.
 - `run({ files, path?, args?, env?, stdin?, stdout?, stderr?, signal? })` runs a program and
   resolves to `{ exitCode, diagnostics }`. Output reaches `stdout` and `stderr` as `Uint8Array`
-  chunks. Aborting `signal` interrupts the run as Ctrl-C does.
+  chunks. Aborting `signal` interrupts the run as Ctrl-C does, once the program waits on
+  something (see [Sandbox](#sandbox)).
 - `languageServer(onMessage, { onLog? })` starts the Ant language server and returns
   `{ send, close }`, carrying JSON-RPC messages as objects. Documents are analyzed when their URI
   is a `file:` URI. [@ant-lang/monaco](../monaco) connects it to the Monaco editor.
@@ -57,8 +58,9 @@ or `main.ant` by default. Imports resolve among `files`.
 it is given, the `args`, `env` and `stdin` passed to `run`, and nothing else. `File` and `Cmd`
 calls fail. `Http` goes through `fetch`, so in a browser it is subject to CORS.
 
-Run long or untrusted programs in a worker: a program that never yields keeps its thread busy, and
-`worker.terminate()` is the way to stop one that ignores interrupts.
+Run long or untrusted programs in a worker. JavaScript events, an abort among them, reach the
+program only while it waits, on a channel, a timer or a fetch: a loop that never waits keeps its
+thread busy and never sees the abort, and `worker.terminate()` is the way to stop it.
 
 ## Building
 

@@ -35,7 +35,11 @@ export interface RunOptions extends Program {
   stdout?: (chunk: Uint8Array) => void;
   /** Called with each write to standard error, panic reports included. */
   stderr?: (chunk: Uint8Array) => void;
-  /** Interrupts the run as Ctrl-C does: Os.interrupt sees the first abort, if asked for it. */
+  /**
+   * Interrupts the run as Ctrl-C does: Os.interrupt sees the first abort, if asked for it. An
+   * abort reaches only a program that waits, as on a channel or a timer, since JavaScript events
+   * run only then; to stop one that never waits, run it in a worker and terminate the worker.
+   */
   signal?: AbortSignal;
 }
 

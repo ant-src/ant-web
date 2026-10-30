@@ -63,6 +63,34 @@ test("an abort interrupts a run", async () => {
   assert.equal((await run).exitCode, 130);
 });
 
+test("a module path may start with a slash", async () => {
+  const stdout = collect();
+  const r = await ant.run({ files: { "/main.ant": 'println("ok")' }, path: "/main.ant", stdout: stdout.write });
+  assert.equal(r.exitCode, 0);
+  assert.equal(stdout.text, "ok\n");
+  assert.deepEqual(ant.check({ files: { "/main.ant": 'println("ok")' }, path: "/main.ant" }), []);
+});
+
+test("time zones come from the embedded database", async () => {
+  const stdout = collect();
+  const r = await ant.run({ files: { "main.ant": 'println(Time.zoneId(Result.unwrap(Time.zone("Europe/Stockholm"))))' }, stdout: stdout.write });
+  assert.equal(r.exitCode, 0);
+  assert.equal(stdout.text, "Europe/Stockholm\n");
+});
+
+test("a callback that throws leaves the instance working", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const r = await ant.run({
+    files: { "main.ant": 'println("a")' },
+    stdout: () => {
+      throw new Error("callback failed");
+    },
+  });
+  assert.equal(r.exitCode, 0);
+  assert.match(String(console.error.mock.calls[0].arguments[0]), /callback failed/);
+  assert.equal(ant.format("func f( ) {  1 }"), "func f() { 1 }\n");
+});
+
 test("the language server answers and publishes diagnostics", async () => {
   const messages = [];
   let notify;

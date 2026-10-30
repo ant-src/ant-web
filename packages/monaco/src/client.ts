@@ -65,8 +65,13 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
 
   const post = (message: object) => worker.postMessage({ lsp: { jsonrpc: "2.0", ...message } });
   const notify = (method: string, params: unknown) => post({ method, params });
+  // send sends a request after the edits waiting in every document, since a module's analysis
+  // reads the modules it imports.
   const send = <T>(method: string, params: unknown): Promise<T> =>
     new Promise((resolve, reject) => {
+      for (const uri of docs.keys()) {
+        flush(uri);
+      }
       const id = nextId++;
       pending.set(id, { resolve, reject });
       post({ id, method, params });
@@ -166,7 +171,8 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
 
   function publish(params: lsp.PublishDiagnosticsParams) {
     const model = monaco.editor.getModel(monaco.Uri.parse(params.uri));
-    if (!model) {
+    // Diagnostics that arrive after a document closed are for nobody.
+    if (!model || !docs.has(model.uri.toString())) {
       return;
     }
     diagnostics.set(model.uri.toString(), params.diagnostics);
@@ -190,11 +196,8 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
 
   // ---- requests
 
-  const request = <T>(model: ITextModel, method: string, params: object): Promise<T> => {
-    const uri = model.uri.toString();
-    flush(uri);
-    return send<T>(method, { textDocument: { uri }, ...params });
-  };
+  const request = <T>(model: ITextModel, method: string, params: object): Promise<T> =>
+    send<T>(method, { textDocument: { uri: model.uri.toString() }, ...params });
 
   const at = (p: Monaco.IPosition): lsp.Position => ({ line: p.lineNumber - 1, character: p.column - 1 });
   const span = (r: IRange): lsp.Range => ({
@@ -543,7 +546,11 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
       if (ownWorker) {
         worker.terminate();
       } else {
+        // The worker is someone else's: end the server politely and stop listening; the worker
+        // keeps its ant.wasm for the next server it starts.
+        post({ id: nextId++, method: "shutdown", params: null });
         notify("exit", null);
+        worker.onmessage = null;
       }
     },
   };
