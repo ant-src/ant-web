@@ -42,8 +42,9 @@ Options:
 - `worker`: a `Worker`, or a function that makes one, to run the server in. The default is
   `new Worker(new URL("./worker.js", import.meta.url), { type: "module" })`. To make your own,
   point it at `@ant-lang/monaco/worker`.
-- `wasm`: the URL the worker loads `ant.wasm` from. The default is the one in
-  [@ant-lang/wasm](../wasm).
+- `wasm`: the URL the worker loads `ant.wasm` from, or a `WebAssembly.Module` compiled already,
+  so a page that also runs programs in a worker of its own compiles it once. The default is the
+  one in [@ant-lang/wasm](../wasm).
 - `onLog`: called with each line the server logs.
 - `debounce`: milliseconds to wait after an edit before sending it; 150 by default. A request
   sends the waiting edits of every model first.

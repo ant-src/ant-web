@@ -15,8 +15,12 @@ export interface AntLanguageServerOptions {
    * worker, made with `new Worker(new URL("./worker.js", import.meta.url), { type: "module" })`.
    */
   worker?: Worker | (() => Worker);
-  /** Where the worker loads ant.wasm from. The default is the ant.wasm of @ant-lang/wasm. */
-  wasm?: string | URL;
+  /**
+   * Where the worker loads ant.wasm from: a URL, or a module compiled already, which a page that
+   * also runs programs in a worker of its own can compile once and give to both. The default is
+   * the ant.wasm of @ant-lang/wasm.
+   */
+  wasm?: string | URL | WebAssembly.Module;
   /** Called with each line the server logs and each message it shows. */
   onLog?: (line: string) => void;
   /** How long to wait after an edit before sending it, in milliseconds. The default is 150. */
@@ -120,7 +124,9 @@ export function startAntLanguageServer(
       receive(data.lsp);
     }
   };
-  worker.postMessage({ init: { wasm: options.wasm?.toString() } });
+  // A module crosses to the worker as it is; a URL as its text.
+  const wasm = options.wasm instanceof WebAssembly.Module ? options.wasm : options.wasm?.toString();
+  worker.postMessage({ init: { wasm } });
 
   function receive(m: lsp.Message) {
     if (m.id !== undefined && m.method === undefined) {
