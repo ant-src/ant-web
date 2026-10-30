@@ -1,0 +1,51 @@
+name: publish
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions: {}
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages-dist
+      - name: version
+        run: |
+          for pkg in packages/wasm packages/monaco; do
+            version=$(node -p "require('./$pkg/package.json').version")
+            if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+              echo "tag $GITHUB_REF_NAME does not match $pkg/package.json version $version"
+              exit 1
+            fi
+          done
+      # Trusted publishing: npm takes the workflow's OIDC token, and adds provenance.
+      # @ant-lang/monaco depends on @ant-lang/wasm, so wasm goes first.
+      - name: npm
+        run: |
+          npm publish packages-dist/ant-lang-wasm-*.tgz --access public
+          npm publish packages-dist/ant-lang-monaco-*.tgz --access public
+      - name: release
+        run: gh release create "$GITHUB_REF_NAME" packages-dist/*.tgz --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
