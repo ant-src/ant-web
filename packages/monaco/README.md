@@ -47,6 +47,8 @@ Options:
 - `onLog`: called with each line the server logs.
 - `debounce`: milliseconds to wait after an edit before sending it; 150 by default. A request
   sends the waiting edits first.
+- `parameterNameHints`: show parameter names before arguments as inlay hints; false by default.
+  Inlay hints for types show either way.
 
 ## Bundlers
 

@@ -21,6 +21,8 @@ export interface AntLanguageServerOptions {
   onLog?: (line: string) => void;
   /** How long to wait after an edit before sending it, in milliseconds. The default is 150. */
   debounce?: number;
+  /** Shows the names of parameters before arguments as inlay hints. The default is false; type hints show either way. */
+  parameterNameHints?: boolean;
 }
 
 export interface AntLanguageServer extends Monaco.IDisposable {
@@ -51,6 +53,7 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
       ? options.worker()
       : (options.worker ?? new Worker(new URL("./worker.js", import.meta.url), { type: "module" }));
   const delay = options.debounce ?? 150;
+  const parameterNameHints = options.parameterNameHints ?? false;
   const log = options.onLog ?? (() => {});
 
   let nextId = 1;
@@ -419,7 +422,7 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
         async provideInlayHints(model, r) {
           const hints = await request<lsp.InlayHint[] | null>(model, "textDocument/inlayHint", { range: span(r) });
           return {
-            hints: (hints ?? []).map((h) => ({
+            hints: (hints ?? []).filter((h) => parameterNameHints || h.kind !== 2).map((h) => ({
               label: typeof h.label === "string" ? h.label : h.label.map((p) => p.value).join(""),
               position: { lineNumber: h.position.line + 1, column: h.position.character + 1 },
               kind: h.kind as Monaco.languages.InlayHintKind | undefined,
