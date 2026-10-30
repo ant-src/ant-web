@@ -1,0 +1,43 @@
+{
+  "name": "@ant-lang/wasm",
+  "version": "0.1.0",
+  "description": "The Ant language compiled to WebAssembly: format, check, and run Ant programs, and serve the Ant language server, in browsers and Node.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ant-src/ant-web.git",
+    "directory": "packages/wasm"
+  },
+  "keywords": [
+    "ant",
+    "language",
+    "wasm",
+    "interpreter",
+    "language-server"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./ant.wasm": "./ant.wasm"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "ant.wasm",
+    "wasm_exec.js"
+  ],
+  "sideEffects": [
+    "./wasm_exec.js"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "prepack": "node scripts/build.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

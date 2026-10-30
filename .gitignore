@@ -1,0 +1,4 @@
+node_modules/
+dist/
+packages/wasm/ant.wasm
+packages/wasm/wasm_exec.js

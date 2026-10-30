@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/wasm",
+    "packages/monaco",
+    "examples/playground"
+  ],
+  "scripts": {
+    "build": "npm run build -w @ant-lang/wasm -w @ant-lang/monaco",
+    "test": "npm test -w @ant-lang/wasm -w @ant-lang/monaco",
+    "dev": "npm run dev -w playground"
+  }
+}
