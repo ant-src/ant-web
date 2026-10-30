@@ -1,6 +1,6 @@
 {
   "name": "@ant-lang/monaco",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ant language support for the Monaco editor: highlighting, editing defaults, and the Ant language server running in a web worker.",
   "keywords": [
     "ant",
@@ -35,7 +35,7 @@
     "prepack": "tsc -p ."
   },
   "dependencies": {
-    "@ant-lang/wasm": "^0.1.0"
+    "@ant-lang/wasm": "^0.2.0"
   },
   "devDependencies": {
     "monaco-editor": "^0.57.0",
