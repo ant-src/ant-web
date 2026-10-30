@@ -2,7 +2,7 @@
 // server's documents in step with the ant models, turns published diagnostics into markers, and
 // answers Monaco's providers with the server's requests.
 import type * as Monaco from "monaco-editor";
-import { languageId } from "./language.js";
+import { languageId, type MonacoApi } from "./language.js";
 import type * as lsp from "./protocol.js";
 
 type editor = typeof Monaco.editor;
@@ -73,10 +73,7 @@ const completionKinds = [
  * providers for the ant language. Models are served when their URI is a file: URI, such as
  * file:///main.ant; a model's imports resolve among the other open models.
  */
-export function startAntLanguageServer(
-  monaco: typeof Monaco,
-  options: AntLanguageServerOptions = {},
-): AntLanguageServer {
+export function startAntLanguageServer(monaco: MonacoApi, options: AntLanguageServerOptions = {}): AntLanguageServer {
   const ownWorker = typeof options.worker !== "object";
   const worker =
     typeof options.worker === "function"

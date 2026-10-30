@@ -2,6 +2,12 @@ import type * as Monaco from "monaco-editor";
 
 export const languageId = "ant";
 
+/**
+ * MonacoApi is the part of the monaco-editor module the package uses, so that the editor alone,
+ * such as monaco-editor/editor without the bundled languages, will do.
+ */
+export type MonacoApi = Pick<typeof Monaco, "editor" | "languages" | "Uri">;
+
 // configuration carries the editing defaults of vscode-ant's language-configuration.json.
 export const configuration: Monaco.languages.LanguageConfiguration = {
   comments: { lineComment: "//", blockComment: ["/*", "*/"] },
@@ -242,7 +248,7 @@ export const tokens: Monaco.languages.IMonarchLanguage & Record<string, unknown>
 let registered = false;
 
 /** registerAntLanguage registers the ant language, its editing defaults, and its tokenizer. Calling it again does nothing. */
-export function registerAntLanguage(monaco: typeof Monaco): void {
+export function registerAntLanguage(monaco: MonacoApi): void {
   if (registered) {
     return;
   }
