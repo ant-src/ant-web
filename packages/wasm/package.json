@@ -1,6 +1,6 @@
 {
   "name": "@ant-lang/wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The Ant language compiled to WebAssembly: format, check, and run Ant programs, and serve the Ant language server, in browsers and Node.",
   "keywords": [
     "ant",
