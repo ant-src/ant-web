@@ -25,6 +25,8 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install -g npm@^11.5.1
       - uses: actions/download-artifact@v8
         with:
           name: packages
@@ -42,10 +44,10 @@ jobs:
       # @ant-lang/monaco depends on @ant-lang/wasm, so wasm goes first.
       - name: npm
         run: |
-          npm publish packages-dist/ant-lang-wasm-*.tgz --access public
-          npm publish packages-dist/ant-lang-monaco-*.tgz --access public
+          npm publish ./packages-dist/ant-lang-wasm-*.tgz --access public
+          npm publish ./packages-dist/ant-lang-monaco-*.tgz --access public
       - name: release
-        run: gh release create "$GITHUB_REF_NAME" packages-dist/*.tgz --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" ./packages-dist/*.tgz --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
