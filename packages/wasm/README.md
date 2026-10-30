@@ -14,7 +14,7 @@ const ant = await loadAnt();
 
 const files = {
   "main.ant": `import "./greet.ant" { greet }\nprintln(greet(Os.args()[0]))\n`,
-  "greet.ant": "export func greet(name: string): string { `hello, ${name}` }\n",
+  "greet.ant": 'export func greet(name: string): string { "hello, ${name}" }\n',
 };
 
 ant.check({ files }); // [] — well typed

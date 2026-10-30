@@ -23,7 +23,7 @@ var shapes: Array[Shape] = [
 ]
 
 for s in shapes {
-  println(\`\${s} has area \${Math.round(area(s) * 100.0) / 100.0}\`)
+  println("\${s} has area \${Math.round(area(s) * 100.0) / 100.0}")
 }
 `,
   "shapes.ant": `export type Circle = { radius: float64 }

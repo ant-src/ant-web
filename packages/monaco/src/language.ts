@@ -119,14 +119,14 @@ export const tokens: Monaco.languages.IMonarchLanguage & Record<string, unknown>
   ],
   builtins: ["print", "println", "eprint", "eprintln", "panic", "len"],
 
-  escapes: /\\(?:[ntr\\"`$]|u\{[0-9A-Fa-f]+\})/,
+  escapes: /\\(?:[ntr\\"$]|u\{[0-9A-Fa-f]+\})/,
 
   tokenizer: {
     root: [
       [/^#!.*$/, "comment"],
       { include: "@whitespace" },
       [/"/, "string", "@string"],
-      [/`/, "string", "@template"],
+      [/`/, "string", "@raw"],
       // A regex literal is told from division by what follows it, as Monaco's JavaScript does.
       [/\/(?=([^\\/\n]|\\.)+\/[a-z]*\s*([.;,)\]}]|$))/, "regexp", "@regexp"],
       [/<>/, "delimiter.html", "@markupContent"],
@@ -169,21 +169,20 @@ export const tokens: Monaco.languages.IMonarchLanguage & Record<string, unknown>
       [/[/*]/, "comment"],
     ],
 
+    // A string interpolates ${...} and may span lines.
     string: [
-      [/[^\\"]+$/, "string", "@pop"], // a string ends at the end of its line
-      [/[^\\"]+/, "string"],
+      [/\$\{/, "delimiter.bracket", "@interpolation"],
+      [/[^\\"$]+/, "string"],
       [/@escapes/, "string.escape"],
-      [/\\.$/, "string.escape.invalid", "@pop"],
       [/\\./, "string.escape.invalid"],
+      [/\\/, "string.escape.invalid"],
+      [/\$/, "string"],
       [/"/, "string", "@pop"],
     ],
 
-    template: [
-      [/\$\{/, "delimiter.bracket", "@interpolation"],
-      [/[^\\`$]+/, "string"],
-      [/@escapes/, "string.escape"],
-      [/\\./, "string.escape.invalid"],
-      [/\$/, "string"],
+    // A raw string has no escapes and no interpolation, and may span lines.
+    raw: [
+      [/[^`]+/, "string"],
       [/`/, "string", "@pop"],
     ],
 

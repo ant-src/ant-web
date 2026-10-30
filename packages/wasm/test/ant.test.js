@@ -31,8 +31,8 @@ test("run imports modules and passes args, env and stdin", async () => {
   const stdout = collect();
   const r = await ant.run({
     files: {
-      "main.ant": 'import "./lib.ant" { hi }\nprintln(`${hi(Os.args()[0])} ${Os.env("WHO") ?? ""}`)\n',
-      "lib.ant": "export func hi(n: string): string { `hi ${n}` }\n",
+      "main.ant": 'import "./lib.ant" { hi }\nprintln("${hi(Os.args()[0])} ${Os.env("WHO") ?? ""}")\n',
+      "lib.ant": 'export func hi(n: string): string { "hi ${n}" }\n',
     },
     path: "main.ant",
     args: ["ada"],
@@ -41,6 +41,16 @@ test("run imports modules and passes args, env and stdin", async () => {
   });
   assert.deepEqual(r, { exitCode: 0, diagnostics: [] });
   assert.equal(stdout.text, "hi ada linus\n");
+});
+
+test("a string interpolates and a raw string does not", async () => {
+  const stdout = collect();
+  const r = await ant.run({
+    files: { "main.ant": 'var n = 2\nprintln("n=${n}\\t\\${n}")\nprintln(`n=${n}\\t`)\n' },
+    stdout: stdout.write,
+  });
+  assert.equal(r.exitCode, 0);
+  assert.equal(stdout.text, "n=2\t${n}\nn=${n}\\t\n");
 });
 
 test("run reports a panic on stderr with status 1", async () => {
