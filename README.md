@@ -13,4 +13,6 @@ npm install
 npm run build     # builds ant.wasm from ../ant (or $ANT_DIR) and the Monaco package
 npm test
 npm run dev       # the playground at http://localhost:5173
+npm run fmt       # oxfmt
+npm run lint      # oxlint
 ```

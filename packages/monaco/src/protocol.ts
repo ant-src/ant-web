@@ -79,7 +79,11 @@ export interface CompletionList {
 }
 
 export interface Hover {
-  contents: MarkupContent | string | { language: string; value: string } | (string | { language: string; value: string })[];
+  contents:
+    | MarkupContent
+    | string
+    | { language: string; value: string }
+    | (string | { language: string; value: string })[];
   range?: Range;
 }
 

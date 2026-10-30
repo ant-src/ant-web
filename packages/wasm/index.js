@@ -24,7 +24,9 @@ export async function loadAnt(options = {}) {
   go.argv = ["ant", ready];
   const instance = await instantiate(source, go.importObject);
   const exited = go.run(instance);
-  return wrap(await Promise.race([api, exited.then(() => Promise.reject(new Error("ant.wasm exited before it was ready")))]));
+  return wrap(
+    await Promise.race([api, exited.then(() => Promise.reject(new Error("ant.wasm exited before it was ready")))]),
+  );
 }
 
 async function instantiate(source, imports) {

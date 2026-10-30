@@ -36,9 +36,32 @@ export interface AntLanguageServer extends Monaco.IDisposable {
 const schemes = new Set(["file", "ant"]);
 
 const completionKinds = [
-  "", "Text", "Method", "Function", "Constructor", "Field", "Variable", "Class", "Interface", "Module",
-  "Property", "Unit", "Value", "Enum", "Keyword", "Snippet", "Color", "File", "Reference", "Folder",
-  "EnumMember", "Constant", "Struct", "Event", "Operator", "TypeParameter",
+  "",
+  "Text",
+  "Method",
+  "Function",
+  "Constructor",
+  "Field",
+  "Variable",
+  "Class",
+  "Interface",
+  "Module",
+  "Property",
+  "Unit",
+  "Value",
+  "Enum",
+  "Keyword",
+  "Snippet",
+  "Color",
+  "File",
+  "Reference",
+  "Folder",
+  "EnumMember",
+  "Constant",
+  "Struct",
+  "Event",
+  "Operator",
+  "TypeParameter",
 ] as const;
 
 /**
@@ -46,7 +69,10 @@ const completionKinds = [
  * providers for the ant language. Models are served when their URI is a file: URI, such as
  * file:///main.ant; a model's imports resolve among the other open models.
  */
-export function startAntLanguageServer(monaco: typeof Monaco, options: AntLanguageServerOptions = {}): AntLanguageServer {
+export function startAntLanguageServer(
+  monaco: typeof Monaco,
+  options: AntLanguageServerOptions = {},
+): AntLanguageServer {
   const ownWorker = typeof options.worker !== "object";
   const worker =
     typeof options.worker === "function"
@@ -59,7 +85,10 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
   let nextId = 1;
   const pending = new Map<number, { resolve: (v: any) => void; reject: (e: Error) => void }>();
   const disposables: Monaco.IDisposable[] = [];
-  const docs = new Map<string, { model: ITextModel; timer?: ReturnType<typeof setTimeout>; listener: Monaco.IDisposable }>();
+  const docs = new Map<
+    string,
+    { model: ITextModel; timer?: ReturnType<typeof setTimeout>; listener: Monaco.IDisposable }
+  >();
   const diagnostics = new Map<string, lsp.Diagnostic[]>();
   let disposed = false;
 
@@ -219,7 +248,11 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
     const out: Monaco.languages.IWorkspaceTextEdit[] = [];
     for (const [uri, list] of Object.entries(e?.changes ?? {})) {
       for (const te of list) {
-        out.push({ resource: monaco.Uri.parse(uri), textEdit: { range: range(te.range), text: te.newText }, versionId: undefined });
+        out.push({
+          resource: monaco.Uri.parse(uri),
+          textEdit: { range: range(te.range), text: te.newText },
+          versionId: undefined,
+        });
       }
     }
     return { edits: out };
@@ -227,7 +260,9 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
 
   // locations converts locations, first making a model for each that has none, such as the
   // prelude, whose text the server gives through ant/source.
-  async function locations(result: lsp.Location | lsp.Location[] | lsp.LocationLink[] | null): Promise<Monaco.languages.Location[]> {
+  async function locations(
+    result: lsp.Location | lsp.Location[] | lsp.LocationLink[] | null,
+  ): Promise<Monaco.languages.Location[]> {
     const list = result === null ? [] : Array.isArray(result) ? result : [result];
     const out = list.map((l) =>
       "targetUri" in l
@@ -263,15 +298,26 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
       L.registerCompletionItemProvider(sel, {
         triggerCharacters: caps.completionProvider?.triggerCharacters,
         async provideCompletionItems(model, position) {
-          const r = await request<lsp.CompletionList | lsp.CompletionItem[] | null>(model, "textDocument/completion", { position: at(position) });
+          const r = await request<lsp.CompletionList | lsp.CompletionItem[] | null>(model, "textDocument/completion", {
+            position: at(position),
+          });
           const list = Array.isArray(r) ? { isIncomplete: false, items: r } : (r ?? { isIncomplete: false, items: [] });
           const word = model.getWordUntilPosition(position);
-          const fallback = { startLineNumber: position.lineNumber, startColumn: word.startColumn, endLineNumber: position.lineNumber, endColumn: position.column };
+          const fallback = {
+            startLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          };
           return {
             incomplete: list.isIncomplete,
             suggestions: list.items.map((item) => ({
-              label: item.labelDetails ? { label: item.label, detail: item.labelDetails.detail, description: item.labelDetails.description } : item.label,
-              kind: L.CompletionItemKind[completionKinds[item.kind ?? 1] as keyof typeof L.CompletionItemKind] ?? L.CompletionItemKind.Text,
+              label: item.labelDetails
+                ? { label: item.label, detail: item.labelDetails.detail, description: item.labelDetails.description }
+                : item.label,
+              kind:
+                L.CompletionItemKind[completionKinds[item.kind ?? 1] as keyof typeof L.CompletionItemKind] ??
+                L.CompletionItemKind.Text,
               detail: item.detail,
               documentation: markdown(item.documentation),
               sortText: item.sortText,
@@ -293,7 +339,9 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
           }
           const contents = Array.isArray(r.contents) ? r.contents : [r.contents];
           return {
-            contents: contents.map((c) => markdown(typeof c === "object" && "language" in c ? "```" + c.language + "\n" + c.value + "\n```" : c)!),
+            contents: contents.map((c) =>
+              markdown(typeof c === "object" && "language" in c ? "```" + c.language + "\n" + c.value + "\n```" : c)!,
+            ),
             range: r.range && range(r.range),
           };
         },
@@ -303,7 +351,9 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
         signatureHelpTriggerCharacters: caps.signatureHelpProvider?.triggerCharacters,
         signatureHelpRetriggerCharacters: caps.signatureHelpProvider?.retriggerCharacters,
         async provideSignatureHelp(model, position) {
-          const r = await request<lsp.SignatureHelp | null>(model, "textDocument/signatureHelp", { position: at(position) });
+          const r = await request<lsp.SignatureHelp | null>(model, "textDocument/signatureHelp", {
+            position: at(position),
+          });
           if (!r || r.signatures.length === 0) {
             return null;
           }
@@ -314,7 +364,10 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
               signatures: r.signatures.map((s) => ({
                 label: s.label,
                 documentation: markdown(s.documentation),
-                parameters: (s.parameters ?? []).map((p) => ({ label: p.label, documentation: markdown(p.documentation) })),
+                parameters: (s.parameters ?? []).map((p) => ({
+                  label: p.label,
+                  documentation: markdown(p.documentation),
+                })),
                 activeParameter: s.activeParameter,
               })),
             },
@@ -337,15 +390,25 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
 
       L.registerDocumentHighlightProvider(sel, {
         async provideDocumentHighlights(model, position) {
-          const r = await request<lsp.DocumentHighlight[] | null>(model, "textDocument/documentHighlight", { position: at(position) });
-          return (r ?? []).map((h) => ({ range: range(h.range), kind: ((h.kind ?? 1) - 1) as Monaco.languages.DocumentHighlightKind }));
+          const r = await request<lsp.DocumentHighlight[] | null>(model, "textDocument/documentHighlight", {
+            position: at(position),
+          });
+          return (r ?? []).map((h) => ({
+            range: range(h.range),
+            kind: ((h.kind ?? 1) - 1) as Monaco.languages.DocumentHighlightKind,
+          }));
         },
       }),
 
       L.registerRenameProvider(sel, {
         async provideRenameEdits(model, position, newName) {
           try {
-            return edits(await request<lsp.WorkspaceEdit | null>(model, "textDocument/rename", { position: at(position), newName }));
+            return edits(
+              await request<lsp.WorkspaceEdit | null>(model, "textDocument/rename", {
+                position: at(position),
+                newName,
+              }),
+            );
           } catch (err) {
             return { edits: [], rejectReason: (err as Error).message };
           }
@@ -362,7 +425,15 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
             if (!r || !word) {
               return { range: emptyAt(position), text: "", rejectReason: "This element can't be renamed." };
             }
-            return { range: { startLineNumber: position.lineNumber, startColumn: word.startColumn, endLineNumber: position.lineNumber, endColumn: word.endColumn }, text: word.word };
+            return {
+              range: {
+                startLineNumber: position.lineNumber,
+                startColumn: word.startColumn,
+                endLineNumber: position.lineNumber,
+                endColumn: word.endColumn,
+              },
+              text: word.word,
+            };
           }
           if ("placeholder" in r) {
             return { range: range(r.range), text: r.placeholder };
@@ -392,7 +463,9 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
       L.registerDocumentFormattingEditProvider(sel, {
         displayName: "ant fmt",
         async provideDocumentFormattingEdits(model, opts) {
-          const r = await request<lsp.TextEdit[] | null>(model, "textDocument/formatting", { options: { tabSize: opts.tabSize, insertSpaces: opts.insertSpaces } });
+          const r = await request<lsp.TextEdit[] | null>(model, "textDocument/formatting", {
+            options: { tabSize: opts.tabSize, insertSpaces: opts.insertSpaces },
+          });
           return (r ?? []).map((e) => ({ range: range(e.range), text: e.newText }));
         },
       }),
@@ -410,7 +483,9 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
 
       L.registerSelectionRangeProvider(sel, {
         async provideSelectionRanges(model, positions) {
-          const r = await request<lsp.SelectionRange[] | null>(model, "textDocument/selectionRange", { positions: positions.map(at) });
+          const r = await request<lsp.SelectionRange[] | null>(model, "textDocument/selectionRange", {
+            positions: positions.map(at),
+          });
           return (r ?? []).map((s) => {
             const out: Monaco.languages.SelectionRange[] = [];
             for (let cur: lsp.SelectionRange | undefined = s; cur; cur = cur.parent) {
@@ -425,13 +500,15 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
         async provideInlayHints(model, r) {
           const hints = await request<lsp.InlayHint[] | null>(model, "textDocument/inlayHint", { range: span(r) });
           return {
-            hints: (hints ?? []).filter((h) => parameterNameHints || h.kind !== 2).map((h) => ({
-              label: typeof h.label === "string" ? h.label : h.label.map((p) => p.value).join(""),
-              position: { lineNumber: h.position.line + 1, column: h.position.character + 1 },
-              kind: h.kind as Monaco.languages.InlayHintKind | undefined,
-              paddingLeft: h.paddingLeft,
-              paddingRight: h.paddingRight,
-            })),
+            hints: (hints ?? [])
+              .filter((h) => parameterNameHints || h.kind !== 2)
+              .map((h) => ({
+                label: typeof h.label === "string" ? h.label : h.label.map((p) => p.value).join(""),
+                position: { lineNumber: h.position.line + 1, column: h.position.character + 1 },
+                kind: h.kind as Monaco.languages.InlayHintKind | undefined,
+                paddingLeft: h.paddingLeft,
+                paddingRight: h.paddingRight,
+              })),
             dispose() {},
           };
         },
@@ -441,7 +518,12 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
         async provideCodeActions(model, r, context) {
           const known = diagnostics.get(model.uri.toString()) ?? [];
           const related = known.filter((d) =>
-            context.markers.some((m) => m.message === d.message && m.startLineNumber === d.range.start.line + 1 && m.startColumn === d.range.start.character + 1),
+            context.markers.some(
+              (m) =>
+                m.message === d.message &&
+                m.startLineNumber === d.range.start.line + 1 &&
+                m.startColumn === d.range.start.character + 1,
+            ),
           );
           const actions = await request<lsp.CodeAction[] | null>(model, "textDocument/codeAction", {
             range: span(r),
@@ -477,7 +559,12 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
   }
 
   function range(r: lsp.Range): IRange {
-    return { startLineNumber: r.start.line + 1, startColumn: r.start.character + 1, endLineNumber: r.end.line + 1, endColumn: r.end.character + 1 };
+    return {
+      startLineNumber: r.start.line + 1,
+      startColumn: r.start.character + 1,
+      endLineNumber: r.end.line + 1,
+      endColumn: r.end.character + 1,
+    };
   }
 
   function emptyAt(p: Monaco.IPosition): IRange {
@@ -494,8 +581,20 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
       general: { positionEncodings: ["utf-16"] },
       textDocument: {
         hover: { contentFormat: ["markdown", "plaintext"] },
-        completion: { completionItem: { snippetSupport: true, documentationFormat: ["markdown", "plaintext"], labelDetailsSupport: true } },
-        signatureHelp: { signatureInformation: { documentationFormat: ["markdown", "plaintext"], parameterInformation: { labelOffsetSupport: true }, activeParameterSupport: true } },
+        completion: {
+          completionItem: {
+            snippetSupport: true,
+            documentationFormat: ["markdown", "plaintext"],
+            labelDetailsSupport: true,
+          },
+        },
+        signatureHelp: {
+          signatureInformation: {
+            documentationFormat: ["markdown", "plaintext"],
+            parameterInformation: { labelOffsetSupport: true },
+            activeParameterSupport: true,
+          },
+        },
         definition: { linkSupport: false },
         rename: { prepareSupport: true },
         documentSymbol: { hierarchicalDocumentSymbolSupport: true },
@@ -536,7 +635,7 @@ export function startAntLanguageServer(monaco: typeof Monaco, options: AntLangua
       for (const d of disposables.splice(0)) {
         d.dispose();
       }
-      for (const { model } of [...docs.values()]) {
+      for (const { model } of docs.values()) {
         close(model);
       }
       for (const p of pending.values()) {

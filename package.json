@@ -8,6 +8,13 @@
   "scripts": {
     "build": "npm run build -w @ant-lang/wasm -w @ant-lang/monaco",
     "test": "npm test -w @ant-lang/wasm -w @ant-lang/monaco",
+    "fmt": "oxfmt",
+    "lint": "oxlint --deny-warnings",
+    "fmt:check": "oxfmt --check",
     "dev": "npm run dev -w playground"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.75.0",
+    "oxlint": "^1.90.0"
   }
 }

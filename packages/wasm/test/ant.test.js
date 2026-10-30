@@ -58,7 +58,10 @@ test("run returns load diagnostics with status 2", async () => {
 
 test("an abort interrupts a run", async () => {
   const controller = new AbortController();
-  const run = ant.run({ files: { "main.ant": "while true { Time.sleep(Time.duration(milliseconds: 1)) }" }, signal: controller.signal });
+  const run = ant.run({
+    files: { "main.ant": "while true { Time.sleep(Time.duration(milliseconds: 1)) }" },
+    signal: controller.signal,
+  });
   setTimeout(() => controller.abort(), 50);
   assert.equal((await run).exitCode, 130);
 });
@@ -73,7 +76,10 @@ test("a module path may start with a slash", async () => {
 
 test("time zones come from the embedded database", async () => {
   const stdout = collect();
-  const r = await ant.run({ files: { "main.ant": 'println(Time.zoneId(Result.unwrap(Time.zone("Europe/Stockholm"))))' }, stdout: stdout.write });
+  const r = await ant.run({
+    files: { "main.ant": 'println(Time.zoneId(Result.unwrap(Time.zone("Europe/Stockholm"))))' },
+    stdout: stdout.write,
+  });
   assert.equal(r.exitCode, 0);
   assert.equal(stdout.text, "Europe/Stockholm\n");
 });
@@ -111,10 +117,19 @@ test("the language server answers and publishes diagnostics", async () => {
   assert.ok(init.result.capabilities.hoverProvider);
   conn.send({ jsonrpc: "2.0", method: "initialized", params: {} });
   const uri = "file:///main.ant";
-  conn.send({ jsonrpc: "2.0", method: "textDocument/didOpen", params: { textDocument: { uri, languageId: "ant", version: 1, text: 'var x: int = "s"' } } });
+  conn.send({
+    jsonrpc: "2.0",
+    method: "textDocument/didOpen",
+    params: { textDocument: { uri, languageId: "ant", version: 1, text: 'var x: int = "s"' } },
+  });
   const diags = await until((m) => m.method === "textDocument/publishDiagnostics");
   assert.equal(diags.params.diagnostics[0].message, "cannot use string where int is expected");
-  conn.send({ jsonrpc: "2.0", id: 2, method: "textDocument/hover", params: { textDocument: { uri }, position: { line: 0, character: 4 } } });
+  conn.send({
+    jsonrpc: "2.0",
+    id: 2,
+    method: "textDocument/hover",
+    params: { textDocument: { uri }, position: { line: 0, character: 4 } },
+  });
   const hover = await until((m) => m.id === 2);
   assert.match(hover.result.contents.value, /var x: int/);
   conn.close();

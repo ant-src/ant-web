@@ -68,7 +68,10 @@ export interface Ant {
    * Starts a language server. Documents are analyzed when their URI is a file: URI; their
    * imports resolve among the open documents, since ant.wasm has no file system.
    */
-  languageServer(onMessage: (message: any) => void, options?: { onLog?: (line: string) => void }): LanguageServerConnection;
+  languageServer(
+    onMessage: (message: any) => void,
+    options?: { onLog?: (line: string) => void },
+  ): LanguageServerConnection;
 }
 
 export function loadAnt(options?: LoadOptions): Promise<Ant>;

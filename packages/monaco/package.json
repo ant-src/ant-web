@@ -2,18 +2,21 @@
   "name": "@ant-lang/monaco",
   "version": "0.1.0",
   "description": "Ant language support for the Monaco editor: highlighting, editing defaults, and the Ant language server running in a web worker.",
+  "keywords": [
+    "ant",
+    "language",
+    "language-server",
+    "monaco",
+    "monaco-editor"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ant-src/ant-web.git",
     "directory": "packages/monaco"
   },
-  "keywords": [
-    "ant",
-    "language",
-    "monaco",
-    "monaco-editor",
-    "language-server"
+  "files": [
+    "dist"
   ],
   "type": "module",
   "exports": {
@@ -26,9 +29,6 @@
       "default": "./dist/worker.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsc -p .",
     "test": "tsc -p . --noEmit",
@@ -37,11 +37,11 @@
   "dependencies": {
     "@ant-lang/wasm": "^0.1.0"
   },
-  "peerDependencies": {
-    "monaco-editor": ">=0.45.0"
-  },
   "devDependencies": {
     "monaco-editor": "^0.57.0",
     "typescript": "^7.0.2"
+  },
+  "peerDependencies": {
+    "monaco-editor": ">=0.45.0"
   }
 }

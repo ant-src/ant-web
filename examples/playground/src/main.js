@@ -38,7 +38,10 @@ export func area(s: Shape): float64 {
 };
 
 const models = Object.fromEntries(
-  Object.entries(files).map(([path, text]) => [path, monaco.editor.createModel(text, "ant", monaco.Uri.parse(`file:///${path}`))]),
+  Object.entries(files).map(([path, text]) => [
+    path,
+    monaco.editor.createModel(text, "ant", monaco.Uri.parse(`file:///${path}`)),
+  ]),
 );
 
 const dark = matchMedia("(prefers-color-scheme: dark)");
@@ -75,14 +78,17 @@ function show(model) {
 }
 function renderTabs() {
   tabs.replaceChildren(
-    ...monaco.editor.getModels().filter((m) => m.getLanguageId() === "ant").map((m) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.textContent = m.uri.path.split("/").pop();
-      b.dataset.uri = m.uri.toString();
-      b.onclick = () => show(m);
-      return b;
-    }),
+    ...monaco.editor
+      .getModels()
+      .filter((m) => m.getLanguageId() === "ant")
+      .map((m) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = m.uri.path.split("/").pop();
+        b.dataset.uri = m.uri.toString();
+        b.onclick = () => show(m);
+        return b;
+      }),
   );
   show(editor.getModel());
 }

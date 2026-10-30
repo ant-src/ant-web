@@ -78,7 +78,7 @@ monaco.editor.registerEditorOpener({
     const model = monaco.editor.getModel(uri);
     if (!model) return false;
     source.setModel(model);
-    if (selection) source.revealRangeInCenter(selection), source.setSelection(selection);
+    if (selection) (source.revealRangeInCenter(selection), source.setSelection(selection));
     return true;
   },
 });

@@ -22,7 +22,10 @@ scope.onmessage = (e) => {
       loading.catch(() => ant === loading && (ant = undefined)); // the next init tries again
     }
     const previous = server;
-    previous?.then((s) => s.close(), () => {});
+    previous?.then(
+      (s) => s.close(),
+      () => {},
+    );
     server = ant!.then((ant) =>
       ant.languageServer((message) => scope.postMessage({ lsp: message }), {
         onLog: (line) => scope.postMessage({ log: line }),
@@ -38,7 +41,9 @@ scope.onmessage = (e) => {
       // A server that never started answers each request with why.
       (err) => {
         if (message.id !== undefined && message.method !== undefined) {
-          scope.postMessage({ lsp: { jsonrpc: "2.0", id: message.id, error: { code: -32603, message: String(err?.message ?? err) } } });
+          scope.postMessage({
+            lsp: { jsonrpc: "2.0", id: message.id, error: { code: -32603, message: String(err?.message ?? err) } },
+          });
         }
       },
     );
