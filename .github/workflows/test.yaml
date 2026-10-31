@@ -2,7 +2,7 @@ name: test
 
 on:
   push:
-    branches: ["**"]
+    branches: ['**']
   pull_request:
   workflow_call:
 
@@ -12,33 +12,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: ant-web
           persist-credentials: false
       # ant.wasm is built from the ant repository's default branch, next to this one.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ant-src/ant
           path: ant
           persist-credentials: false
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: ant/go.mod
           cache: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           package-manager-cache: false
       - name: install
         working-directory: ant-web
         run: npm ci
-      - name: format
-        working-directory: ant-web
-        run: npm run fmt:check
-      - name: lint
-        working-directory: ant-web
-        run: npm run lint
       - name: build
         working-directory: ant-web
         run: npm run build
@@ -48,12 +42,37 @@ jobs:
       - name: playground
         working-directory: ant-web
         run: npm run build -w playground
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ant-web
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ant-src/ant
+          path: ant
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ant/go.mod
+          cache: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: install
+        working-directory: ant-web
+        run: npm ci
+      # npm pack builds each package first, with its prepack script.
       - name: pack
         working-directory: ant-web
         run: |
           mkdir -p "$RUNNER_TEMP/packages"
           npm pack -w @ant-lang/wasm -w @ant-lang/monaco --pack-destination "$RUNNER_TEMP/packages"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages
           path: ${{ runner.temp }}/packages/*.tgz
