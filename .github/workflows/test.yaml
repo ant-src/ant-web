@@ -16,10 +16,12 @@ jobs:
         with:
           path: ant-web
           persist-credentials: false
-      # ant.wasm is built from the ant repository's default branch, next to this one.
+      # ant.wasm is built from the ant repository, next to this one.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ant-src/ant
+          # A release tag builds from ant's tag of the same name; anything else from its default branch.
+          ref: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           path: ant
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -53,6 +55,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ant-src/ant
+          # A release tag builds from ant's tag of the same name; anything else from its default branch.
+          ref: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           path: ant
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
