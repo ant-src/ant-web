@@ -130,7 +130,10 @@ export const tokens: Monaco.languages.IMonarchLanguage & Record<string, unknown>
       // A regex literal is told from division by what follows it, as Monaco's JavaScript does.
       [/\/(?=([^\\/\n]|\\.)+\/[a-z]*\s*([.;,)\]}]|$))/, "regexp", "@regexp"],
       [/<>/, "delimiter.html", "@markupContent"],
-      [/(<)(script|style)\b/, ["delimiter.html", { token: "tag", next: "@rawTag.$2" }]],
+      [
+        /(<)([sS][cC][rR][iI][pP][tT]|[sS][tT][yY][lL][eE])(?![\w-])/,
+        ["delimiter.html", { token: "tag", next: "@rawTag.$2" }],
+      ],
       [/(<)([A-Za-z][\w-]*)(?=[\s/>])/, ["delimiter.html", { token: "tag", next: "@markupTag" }]],
       // A keyword followed by a colon is a field name, as in { type: 1 }.
       [/[A-Za-z_]\w*(?=\s*:(?!=))/, "identifier"],
@@ -229,7 +232,10 @@ export const tokens: Monaco.languages.IMonarchLanguage & Record<string, unknown>
     markupContent: [
       [/<\/[A-Za-z][\w-]*\s*>|<\/>/, "tag", "@pop"],
       [/<>/, "delimiter.html", "@markupContent"],
-      [/(<)(script|style)\b/, ["delimiter.html", { token: "tag", next: "@rawTag.$2" }]],
+      [
+        /(<)([sS][cC][rR][iI][pP][tT]|[sS][tT][yY][lL][eE])(?![\w-])/,
+        ["delimiter.html", { token: "tag", next: "@rawTag.$2" }],
+      ],
       [/(<)([A-Za-z][\w-]*)/, ["delimiter.html", { token: "tag", next: "@markupTag" }]],
       [/\{/, "delimiter.bracket", "@interpolation"],
       [/&(?:amp|lt|gt|quot|apos|nbsp|#\d+|#x[0-9A-Fa-f]+);/, "string.escape"],
