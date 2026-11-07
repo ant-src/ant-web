@@ -17,11 +17,23 @@ jobs:
           path: ant-web
           persist-credentials: false
       # ant.wasm is built from the ant repository, next to this one.
+      # A release tag builds from ant's tag of the same name when ant has one; anything else, and
+      # a tag ant does not have, from its default branch.
+      - name: ant ref
+        id: ant
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          ref=
+          if [ "$REF_TYPE" = tag ] && git ls-remote --exit-code --tags https://github.com/ant-src/ant "refs/tags/$REF_NAME" >/dev/null; then
+            ref=$REF_NAME
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ant-src/ant
-          # A release tag builds from ant's tag of the same name; anything else from its default branch.
-          ref: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          ref: ${{ steps.ant.outputs.ref }}
           path: ant
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -52,11 +64,23 @@ jobs:
         with:
           path: ant-web
           persist-credentials: false
+      # A release tag builds from ant's tag of the same name when ant has one; anything else, and
+      # a tag ant does not have, from its default branch.
+      - name: ant ref
+        id: ant
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          ref=
+          if [ "$REF_TYPE" = tag ] && git ls-remote --exit-code --tags https://github.com/ant-src/ant "refs/tags/$REF_NAME" >/dev/null; then
+            ref=$REF_NAME
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ant-src/ant
-          # A release tag builds from ant's tag of the same name; anything else from its default branch.
-          ref: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          ref: ${{ steps.ant.outputs.ref }}
           path: ant
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
