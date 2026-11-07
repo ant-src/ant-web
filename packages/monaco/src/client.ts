@@ -328,6 +328,7 @@ export function startAntLanguageServer(monaco: MonacoApi, options: AntLanguageSe
               insertText: item.textEdit?.newText ?? item.insertText ?? item.label,
               insertTextRules: item.insertTextFormat === 2 ? L.CompletionItemInsertTextRule.InsertAsSnippet : undefined,
               range: item.textEdit ? range(item.textEdit.range) : fallback,
+              additionalTextEdits: item.additionalTextEdits?.map((e) => ({ range: range(e.range), text: e.newText })),
               commitCharacters: item.commitCharacters,
             })),
           };

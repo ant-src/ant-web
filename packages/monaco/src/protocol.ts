@@ -70,6 +70,7 @@ export interface CompletionItem {
   insertText?: string;
   insertTextFormat?: number;
   textEdit?: TextEdit;
+  additionalTextEdits?: TextEdit[];
   commitCharacters?: string[];
 }
 
