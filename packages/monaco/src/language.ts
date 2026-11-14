@@ -154,6 +154,7 @@ export const tokens: Monaco.languages.IMonarchLanguage & Record<string, unknown>
       [/0x[0-9A-Fa-f](?:_?[0-9A-Fa-f])*/, "number.hex"],
       [/0o[0-7](?:_?[0-7])*/, "number"],
       [/0b[01](?:_?[01])*/, "number"],
+      [/(?:\d(?:_?\d)*(?:\.\d(?:_?\d)*)?(?:ms|us|ns|h|m|s))+(?![\w])/, "number"],
       [/\d(?:_?\d)*(?:\.\d(?:_?\d)*)?(?:e[+-]?\d(?:_?\d)*)?/, "number"],
       [/[{}()[\]]/, "@brackets"],
       [/\.\.\.|\?\.|==|!=|<=|>=|&&|\|\||\?\?|[+\-*/%]=|[=+\-*/%<>!|?]/, "operator"],
