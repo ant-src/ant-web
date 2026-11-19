@@ -22,6 +22,10 @@ export interface Diagnostic {
   line: number;
   column: number;
   message: string;
+  /** The rule the diagnostic reports, such as "type-mismatch". */
+  code: string;
+  /** "error", or "warning" for code that checks but is almost always a mistake. */
+  severity: "error" | "warning";
 }
 
 export interface RunOptions extends Program {
