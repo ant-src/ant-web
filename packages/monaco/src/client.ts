@@ -216,6 +216,7 @@ export function startAntLanguageServer(monaco: MonacoApi, options: AntLanguageSe
       ...range(d.range),
       severity: [0, 8, 4, 2, 1][d.severity ?? 1] as Monaco.MarkerSeverity,
       message: d.message,
+      code: d.code,
       source: d.source,
       tags: d.tags as Monaco.MarkerTag[] | undefined,
       relatedInformation: d.relatedInformation?.map((r) => ({

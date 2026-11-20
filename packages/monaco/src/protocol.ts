@@ -38,6 +38,8 @@ export interface MarkupContent {
 export interface Diagnostic {
   range: Range;
   severity?: number;
+  /** The rule the diagnostic reports, such as "type-mismatch" (spec/check.md section 3). */
+  code?: string;
   source?: string;
   message: string;
   tags?: number[];
