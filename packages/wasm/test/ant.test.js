@@ -24,7 +24,17 @@ test("format throws on a syntax error", () => {
 test("check reports columns in UTF-16 code units", () => {
   const diags = ant.check({ files: { "main.ant": 'var s = "😀"; var n: int = "x"' } });
   assert.equal(diags.length, 1);
-  assert.deepEqual({ ...diags[0], message: undefined }, { path: "main.ant", line: 1, column: 28, message: undefined });
+  assert.deepEqual(
+    { ...diags[0], message: undefined },
+    {
+      path: "main.ant",
+      line: 1,
+      column: 28,
+      message: undefined,
+      code: "type-mismatch",
+      severity: "error",
+    },
+  );
 });
 
 test("run imports modules and passes args, env and stdin", async () => {
