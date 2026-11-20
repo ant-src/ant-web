@@ -61,6 +61,13 @@ export interface LanguageServerConnection {
   close(): void;
 }
 
+/** A connection to a debug adapter, carrying Debug Adapter Protocol messages as objects. */
+export interface DebugAdapterConnection {
+  send(message: object): void;
+  /** Ends the session and its program, as the end of the adapter's input stream does. */
+  close(): void;
+}
+
 export interface Ant {
   /** Formats one module, as ant fmt does. Throws a SyntaxError when the source does not parse. */
   format(source: string, path?: string): string;
@@ -76,6 +83,18 @@ export interface Ant {
     onMessage: (message: any) => void,
     options?: { onLog?: (line: string) => void },
   ): LanguageServerConnection;
+  /**
+   * Starts a debug adapter, what `ant dap` serves, for one session on a program whose modules
+   * are files. The launch request's `program` and the sources of breakpoints are paths among
+   * files; `env` is the whole environment and `stdin` names one of the files. Requests reach the
+   * adapter only while the program waits or is stopped, since JavaScript events run only then:
+   * run it in a worker, and terminate the worker to stop a program that never waits.
+   */
+  debugAdapter(
+    program: { files: Files },
+    onMessage: (message: any) => void,
+    options?: { onLog?: (line: string) => void },
+  ): DebugAdapterConnection;
 }
 
 export function loadAnt(options?: LoadOptions): Promise<Ant>;

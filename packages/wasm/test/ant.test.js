@@ -154,3 +154,67 @@ test("the language server answers and publishes diagnostics", async () => {
   assert.match(hover.result.contents.value, /var x: int/);
   conn.close();
 });
+
+test("the debug adapter stops at a breakpoint in an imported module and steps", async () => {
+  const messages = [];
+  let notify;
+  const files = {
+    "main.ant": 'import "./lib.ant" { double }\nvar n = double(2)\nprintln(n)\n',
+    "lib.ant": "export func double(n: int): int {\n  var r = n * 2\n  return r\n}\n",
+  };
+  const conn = ant.debugAdapter({ files }, (m) => {
+    messages.push(m);
+    notify?.();
+  });
+  const until = (pred) =>
+    new Promise((resolve) => {
+      notify = () => {
+        const i = messages.findIndex(pred);
+        if (i >= 0) resolve(messages.splice(i, 1)[0]);
+      };
+      notify();
+    });
+  let seq = 0;
+  const request = async (command, args) => {
+    const id = ++seq;
+    conn.send({ seq: id, type: "request", command, arguments: args });
+    const response = await until((m) => m.type === "response" && m.request_seq === id);
+    assert.ok(response.success, response.message);
+    return response.body;
+  };
+  const event = (name) => until((m) => m.type === "event" && m.event === name).then((m) => m.body);
+  const locals = async (threadId) => {
+    const { stackFrames } = await request("stackTrace", { threadId });
+    const { scopes } = await request("scopes", { frameId: stackFrames[0].id });
+    const { variables } = await request("variables", { variablesReference: scopes[0].variablesReference });
+    return { frame: stackFrames[0], vars: Object.fromEntries(variables.map((v) => [v.name, v.value])) };
+  };
+
+  await request("initialize", { adapterID: "ant" });
+  await request("launch", { program: "main.ant" });
+  await event("initialized");
+  const { breakpoints } = await request("setBreakpoints", {
+    source: { path: "lib.ant" },
+    breakpoints: [{ line: 2 }],
+  });
+  assert.equal(breakpoints[0].verified, true);
+  await request("configurationDone");
+
+  const { threadId, reason } = await event("stopped");
+  assert.equal(reason, "breakpoint");
+  let at = await locals(threadId);
+  assert.deepEqual([at.frame.name, at.frame.source.path, at.frame.line], ["double", "lib.ant", 2]);
+  assert.deepEqual(at.vars, { n: "2" });
+
+  await request("next", { threadId });
+  assert.equal((await event("stopped")).reason, "step");
+  at = await locals(threadId);
+  assert.equal(at.frame.line, 3);
+  assert.deepEqual(at.vars, { n: "2", r: "4" });
+
+  await request("continue", { threadId });
+  assert.equal((await event("exited")).exitCode, 0);
+  await event("terminated");
+  await request("disconnect");
+  conn.close();
+});

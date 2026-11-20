@@ -48,6 +48,12 @@ which Vite, webpack and esbuild copy along. Pass `wasm` (a URL, a `Response`, by
 - `languageServer(onMessage, { onLog? })` starts the Ant language server and returns
   `{ send, close }`, carrying JSON-RPC messages as objects. Documents are analyzed when their URI
   is a `file:` URI. [@ant-lang/monaco](../monaco) connects it to the Monaco editor.
+- `debugAdapter({ files }, onMessage, { onLog? })` starts a debug adapter, what `ant dap` serves,
+  for one session and returns `{ send, close }`, carrying
+  [Debug Adapter Protocol](https://microsoft.github.io/debug-adapter-protocol/) messages as
+  objects. The `program` of the launch request and the sources of breakpoints are paths among
+  `files`. Requests reach the adapter while the program waits or is stopped (see
+  [Sandbox](#sandbox)), so run it in a worker.
 
 `files` maps module paths to source text, and `path` is the module to start from: the only module,
 or `main.ant` by default. Imports resolve among `files`.

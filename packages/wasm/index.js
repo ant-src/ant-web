@@ -1,5 +1,5 @@
 // @ant-lang/wasm loads Ant compiled to WebAssembly and wraps what it exposes: format, check,
-// run, and the language server.
+// run, the language server, and the debug adapter.
 import "./wasm_exec.js";
 
 let instances = 0;
@@ -82,6 +82,13 @@ function wrap(raw) {
     },
     languageServer(onMessage, options = {}) {
       const conn = raw.languageServer((json) => onMessage(JSON.parse(json)), options.onLog);
+      return {
+        send: (message) => conn.send(JSON.stringify(message)),
+        close: () => conn.close(),
+      };
+    },
+    debugAdapter({ files }, onMessage, options = {}) {
+      const conn = raw.debugAdapter(files, (json) => onMessage(JSON.parse(json)), options.onLog);
       return {
         send: (message) => conn.send(JSON.stringify(message)),
         close: () => conn.close(),
