@@ -54,6 +54,51 @@ export interface RunResult {
   diagnostics: Diagnostic[];
 }
 
+export interface TestOptions {
+  files: Files;
+  /**
+   * The test files to run, in order: paths among files whose names end in "_test.ant". The
+   * default is every test file among files, in lexical order, as `ant test` finds them.
+   */
+  paths?: string[];
+  /** Runs only the tests whose full name matches, as the -run flag of `ant test`: "parse/0x". */
+  run?: string;
+  /** Leaves out the tests that match, as the -skip flag. */
+  skip?: string;
+  /** Starts no test after the first failure. */
+  failfast?: boolean;
+  /** Called with each event of the run, the last of which is "done". */
+  onEvent?: (event: TestEvent) => void;
+  /** The whole environment. The default is empty. */
+  env?: Record<string, string>;
+  /** What the tests read from Os.stdin. */
+  stdin?: string;
+  /** Called with what the modules write to standard output outside a test, as they initialize. */
+  stdout?: (chunk: Uint8Array) => void;
+  /** Called with each write to standard error outside a test, the panic of an initializer included. */
+  stderr?: (chunk: Uint8Array) => void;
+  /** Ends the run, once the tests wait, as RunOptions.signal does. */
+  signal?: AbortSignal;
+}
+
+/** An event of a test run, as `ant test -json` prints them. `file` is a path of `paths`, `test` a full name such as "parse/0x10", `elapsed` in seconds. */
+export type TestEvent =
+  | { action: "run"; file: string; test: string }
+  /** The text of one write of a test. */
+  | { action: "output"; file: string; test: string; output: string }
+  | { action: "pass"; file: string; test: string; elapsed: number }
+  | { action: "skip"; file: string; test: string; elapsed: number; reason?: string }
+  /** `message` holds the failures, as `ant test` reports them; none when only subtests failed. */
+  | { action: "fail"; file: string; test: string; elapsed: number; message?: string }
+  | { action: "done"; passed: number; failed: number; skipped: number; elapsed: number };
+
+export interface TestResult {
+  /** The status `ant test` would exit with: 0, 1 when a test failed or the checker reported an error, 2 when a file did not load, 130 when the signal ended the run, or what Os.exit was given. */
+  exitCode: number;
+  /** The checker's errors. When there are any, no test ran and there are no events. */
+  diagnostics: Diagnostic[];
+}
+
 /** A connection to a language server (spec/lsp.md), carrying JSON-RPC messages as objects. */
 export interface LanguageServerConnection {
   send(message: object): void;
@@ -75,6 +120,11 @@ export interface Ant {
   check(program: Program): Diagnostic[];
   /** Runs a program. Ant code that blocks, such as on a channel or a timer, does not block the caller. */
   run(options: RunOptions): Promise<RunResult>;
+  /**
+   * Runs the tests of test files, as `ant test` does: the files are checked first, then each runs
+   * as a program of its own. Rejects when a path is not a test file or a pattern does not compile.
+   */
+  test(options: TestOptions): Promise<TestResult>;
   /**
    * Starts a language server. Documents are analyzed when their URI is a file: URI; their
    * imports resolve among the open documents, since ant.wasm has no file system.

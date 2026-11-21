@@ -117,6 +117,87 @@ test("a callback that throws leaves the instance working", async (t) => {
   assert.equal(ant.format("func f( ) {  1 }"), "func f() { 1 }\n");
 });
 
+const stackTest = `import "./stack.ant" { double }
+
+test "double" {
+  assert(double(2) == 4)
+}
+
+test "sizes" {
+  for n in [1, 2] {
+    test "of \${n}" {
+      println("size \${n}")
+      assert(n == 1)
+    }
+  }
+}
+
+test "later" {
+  Test.skip("not yet")
+}
+`;
+const stack = "export func double(n: int): int { n * 2 }\n";
+
+test("test runs test files and reports events", async () => {
+  const events = [];
+  const r = await ant.test({
+    files: { "stack_test.ant": stackTest, "stack.ant": stack, ".cache/old_test.ant": "nonsense(" },
+    onEvent: (e) => events.push(e),
+  });
+  assert.deepEqual(r, { exitCode: 1, diagnostics: [] });
+  const brief = events.map((e) => (e.action === "done" ? e : `${e.action} ${e.file}: ${e.test}`));
+  const done = brief.pop();
+  assert.deepEqual(brief, [
+    "run stack_test.ant: double",
+    "pass stack_test.ant: double",
+    "run stack_test.ant: sizes",
+    "run stack_test.ant: sizes/of 1",
+    "output stack_test.ant: sizes/of 1",
+    "pass stack_test.ant: sizes/of 1",
+    "run stack_test.ant: sizes/of 2",
+    "output stack_test.ant: sizes/of 2",
+    "fail stack_test.ant: sizes/of 2",
+    "fail stack_test.ant: sizes",
+    "run stack_test.ant: later",
+    "skip stack_test.ant: later",
+  ]);
+  assert.deepEqual({ ...done, elapsed: 0 }, { action: "done", passed: 2, failed: 1, skipped: 1, elapsed: 0 });
+  const failure = events.find((e) => e.action === "fail");
+  assert.match(failure.message, /assertion failed: n == 1[^]*stack_test\.ant:11:13/);
+  assert.equal(events.find((e) => e.action === "output").output, "size 1\n");
+  assert.equal(events.find((e) => e.action === "skip").reason, "not yet");
+});
+
+test("test runs the tests a pattern selects", async () => {
+  const events = [];
+  const r = await ant.test({
+    files: { "stack_test.ant": stackTest, "stack.ant": stack },
+    paths: ["stack_test.ant"],
+    run: "^sizes$/^of 1$",
+    onEvent: (e) => events.push(e),
+  });
+  assert.equal(r.exitCode, 0);
+  assert.deepEqual(
+    events.filter((e) => e.action === "pass").map((e) => e.test),
+    ["sizes/of 1", "sizes"],
+  );
+  await assert.rejects(ant.test({ files: { "a_test.ant": "" }, run: "(" }), /run: /);
+  await assert.rejects(ant.test({ files: { "a.ant": "" }, paths: ["a.ant"] }), /not a test file/);
+});
+
+test("test runs nothing when the checker reports an error", async () => {
+  const events = [];
+  const r = await ant.test({
+    files: { "a_test.ant": 'test "t" {\n  var n: int = "x"\n}\n' },
+    onEvent: (e) => events.push(e),
+  });
+  assert.equal(r.exitCode, 1);
+  assert.equal(r.diagnostics[0].code, "type-mismatch");
+  assert.deepEqual(events, []);
+  const missing = await ant.test({ files: { "a_test.ant": 'import "./gone.ant" { f }\n' } });
+  assert.equal(missing.exitCode, 2);
+});
+
 test("the language server answers and publishes diagnostics", async () => {
   const messages = [];
   let notify;

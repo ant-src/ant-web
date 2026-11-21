@@ -1,5 +1,5 @@
 // @ant-lang/wasm loads Ant compiled to WebAssembly and wraps what it exposes: format, check,
-// run, the language server, and the debug adapter.
+// run, test, the language server, and the debug adapter.
 import "./wasm_exec.js";
 
 let instances = 0;
@@ -65,6 +65,21 @@ function rootOf(files, path) {
   return paths.length === 1 ? paths[0] : "main.ant";
 }
 
+// testFiles are the test files among files, as ant test finds them in a directory: in lexical
+// order, without those in directories whose names begin with a dot.
+function testFiles(files) {
+  return Object.keys(files)
+    .filter(
+      (path) =>
+        path.endsWith("_test.ant") &&
+        !path
+          .split("/")
+          .slice(0, -1)
+          .some((dir) => dir.startsWith(".")),
+    )
+    .sort();
+}
+
 function wrap(raw) {
   return {
     format(source, path = "main.ant") {
@@ -79,6 +94,14 @@ function wrap(raw) {
     },
     run(options) {
       return raw.run({ ...options, path: rootOf(options.files, options.path) });
+    },
+    test(options) {
+      const { onEvent } = options;
+      return raw.test({
+        ...options,
+        paths: options.paths ?? testFiles(options.files),
+        onEvent: onEvent && ((json) => onEvent(JSON.parse(json))),
+      });
     },
     languageServer(onMessage, options = {}) {
       const conn = raw.languageServer((json) => onMessage(JSON.parse(json)), options.onLog);

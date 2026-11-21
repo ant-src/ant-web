@@ -45,6 +45,13 @@ which Vite, webpack and esbuild copy along. Pass `wasm` (a URL, a `Response`, by
   resolves to `{ exitCode, diagnostics }`. Output reaches `stdout` and `stderr` as `Uint8Array`
   chunks. Aborting `signal` interrupts the run as Ctrl-C does, once the program waits on
   something (see [Sandbox](#sandbox)).
+- `test({ files, paths?, run?, skip?, failfast?, onEvent?, env?, stdin?, stdout?, stderr?, signal? })`
+  runs the tests of test files as `ant test` does and resolves to `{ exitCode, diagnostics }`.
+  `paths` are the test files to run, by default every `*_test.ant` among `files`; `run` and `skip`
+  are the patterns of the `-run` and `-skip` flags. `onEvent` gets each event of `ant test -json`
+  as an object: `{ action: "run" | "output" | "pass" | "skip" | "fail", file, test, ... }` and a
+  last `{ action: "done", passed, failed, skipped, elapsed }`. The files are checked first: when
+  the checker reports errors they are the `diagnostics`, and no test runs.
 - `languageServer(onMessage, { onLog? })` starts the Ant language server and returns
   `{ send, close }`, carrying JSON-RPC messages as objects. Documents are analyzed when their URI
   is a `file:` URI. [@ant-lang/monaco](../monaco) connects it to the Monaco editor.
