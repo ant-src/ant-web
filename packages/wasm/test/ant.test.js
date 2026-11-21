@@ -185,6 +185,18 @@ test("test runs the tests a pattern selects", async () => {
   await assert.rejects(ant.test({ files: { "a.ant": "" }, paths: ["a.ant"] }), /not a test file/);
 });
 
+test("test shows what a module prints as it initializes before the tests' events", async () => {
+  const log = [];
+  const decoder = new TextDecoder();
+  const r = await ant.test({
+    files: { "a_test.ant": 'func hi(): int {\n  println("init")\n  return 1\n}\nvar a = hi()\ntest "t" {}\n' },
+    stdout: (chunk) => log.push(decoder.decode(chunk)),
+    onEvent: (e) => log.push(e.action),
+  });
+  assert.equal(r.exitCode, 0);
+  assert.deepEqual(log, ["init\n", "run", "pass", "done"]);
+});
+
 test("test runs nothing when the checker reports an error", async () => {
   const events = [];
   const r = await ant.test({

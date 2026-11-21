@@ -68,15 +68,13 @@ function rootOf(files, path) {
 // testFiles are the test files among files, as ant test finds them in a directory: in lexical
 // order, without those in directories whose names begin with a dot.
 function testFiles(files) {
+  const inView = (path) =>
+    !path
+      .split("/")
+      .slice(0, -1)
+      .some((dir) => dir.startsWith("."));
   return Object.keys(files)
-    .filter(
-      (path) =>
-        path.endsWith("_test.ant") &&
-        !path
-          .split("/")
-          .slice(0, -1)
-          .some((dir) => dir.startsWith(".")),
-    )
+    .filter((path) => path.endsWith("_test.ant") && inView(path))
     .sort();
 }
 
